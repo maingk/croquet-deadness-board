@@ -22,7 +22,7 @@ struct GameSetupView: View {
             if let game = gameViewModel.currentGame {
                 HStack(spacing: 16) {
                     ForEach(game.players.indices, id: \.self) { index in
-                        PlayerCard(player: game.players[index], isCurrentStriker: index == game.currentStriker)
+                        PlayerCard(player: game.players[index])
                     }
                 }
             } else {
@@ -43,23 +43,18 @@ struct GameSetupView: View {
 
 struct PlayerCard: View {
     let player: Player
-    let isCurrentStriker: Bool
     
     var body: some View {
         VStack {
             Circle()
                 .fill(player.ballColor.color)
                 .frame(width: 40, height: 40)
-                .overlay(
-                    Circle()
-                        .stroke(isCurrentStriker ? .primary : .clear, lineWidth: 3)
-                )
             
             Text(player.name)
                 .font(.caption)
                 .lineLimit(1)
             
-            Text("Hoop \(player.hoopsRun + 1)")
+            Text(player.ballColor.rawValue)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }

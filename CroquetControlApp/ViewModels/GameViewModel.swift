@@ -6,14 +6,17 @@ import SharedServices
 class GameViewModel: ObservableObject {
     @Published var currentGame: Game?
     @Published var canUndo: Bool = false
+    @Published var isConnected: Bool = false
+    @Published var currentError: Error?
     
     private var gameHistory: [Game] = []
     private var cancellables = Set<AnyCancellable>()
+    private let firebaseService: FirebaseGameService
     
-    // Firebase service will be injected later
-    private var firebaseService: FirebaseGameService?
-    
-    init() {
+    init(firebaseService: FirebaseGameService = FirebaseGameServiceImpl()) {
+        self.firebaseService = firebaseService
+        setupFirebaseObservation()
+        
         // Initialize with sample game for preview purposes
         #if DEBUG
         if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
@@ -22,21 +25,63 @@ class GameViewModel: ObservableObject {
         #endif
     }
     
-    func startNewGame(players: [Player], format: GameFormat, tournamentInfo: String?) {
-        let newGame = Game(
-            id: UUID().uuidString,
-            tournament: tournamentInfo,
-            players: players,
-            deadnessMatrix: Array(repeating: Array(repeating: false, count: 4), count: 4),
-            currentStriker: 0,
-            hoopProgression: Array(repeating: 0, count: 4),
-            timestamp: Date(),
-            status: .active
-        )
+    private func setupFirebaseObservation() {
+        // Observe Firebase service connection state
+        if let firebaseServiceImpl = firebaseService as? FirebaseGameServiceImpl {
+            firebaseServiceImpl.$isConnected
+                .assign(to: \.isConnected, on: self)
+                .store(in: &cancellables)
+            
+            firebaseServiceImpl.$currentError
+                .assign(to: \.currentError, on: self)
+                .store(in: &cancellables)
+        }
+    }
+    
+    func startNewGame(players: [Player], tournamentInfo: String?) {
+        let newGame = Game(players: players, tournament: tournamentInfo)
         
         saveCurrentState()
         currentGame = newGame
-        syncToFirebase()
+        
+        // Create game in Firebase and start listening
+        Task {
+            do {
+                try await firebaseService.createNewGame(newGame)
+                await startListeningForUpdates()
+            } catch {
+                await MainActor.run {
+                    self.currentError = error
+                }
+            }
+        }
+    }
+    
+    func joinGame(gameId: String) {
+        Task {
+            do {
+                let game = try await firebaseService.joinGame(gameId: gameId)
+                await MainActor.run {
+                    self.currentGame = game
+                }
+                await startListeningForUpdates()
+            } catch {
+                await MainActor.run {
+                    self.currentError = error
+                }
+            }
+        }
+    }
+    
+    @MainActor
+    private func startListeningForUpdates() {
+        firebaseService.startListening { [weak self] updatedGame in
+            self?.currentGame = updatedGame
+        }
+    }
+    
+    deinit {
+        firebaseService.stopListening()
     }
     
     func toggleDeadness(from: Int, to: Int) {
@@ -49,39 +94,12 @@ class GameViewModel: ObservableObject {
         syncToFirebase()
     }
     
-    func nextStriker() {
-        guard var game = currentGame else { return }
-        
-        saveCurrentState()
-        game.currentStriker = (game.currentStriker + 1) % game.players.count
-        game.timestamp = Date()
-        currentGame = game
-        syncToFirebase()
-    }
-    
-    func runHoop(for playerIndex: Int) {
-        guard var game = currentGame, playerIndex < game.players.count else { return }
-        
-        saveCurrentState()
-        game.players[playerIndex].hoopsRun += 1
-        game.hoopProgression[playerIndex] = game.players[playerIndex].hoopsRun
-        game.timestamp = Date()
-        currentGame = game
-        syncToFirebase()
-    }
     
     func clearAllDeadness(for playerIndex: Int) {
         guard var game = currentGame, playerIndex < game.players.count else { return }
         
         saveCurrentState()
-        
-        // Clear deadness for this player (both directions)
-        for i in 0..<4 {
-            game.deadnessMatrix[playerIndex][i] = false
-            game.deadnessMatrix[i][playerIndex] = false
-        }
-        
-        game.timestamp = Date()
+        game.clearAllDeadnessFor(playerIndex: playerIndex)
         currentGame = game
         syncToFirebase()
     }
@@ -90,8 +108,7 @@ class GameViewModel: ObservableObject {
         guard var game = currentGame else { return }
         
         saveCurrentState()
-        game.deadnessMatrix = Array(repeating: Array(repeating: false, count: 4), count: 4)
-        game.timestamp = Date()
+        game.clearAllDeadness()
         currentGame = game
         syncToFirebase()
     }
@@ -134,8 +151,7 @@ class GameViewModel: ObservableObject {
     }
     
     private func syncToFirebase() {
-        // Firebase sync will be implemented when service is available
-        firebaseService?.updateGame(currentGame)
+        firebaseService.updateGame(currentGame)
     }
     
     // MARK: - Debug/Preview helpers
@@ -143,26 +159,19 @@ class GameViewModel: ObservableObject {
     #if DEBUG
     private func startSampleGame() {
         let samplePlayers = [
-            Player(name: "Alice", ballColor: .blue, hoopsRun: 2, score: 0),
-            Player(name: "Bob", ballColor: .red, hoopsRun: 1, score: 0),
-            Player(name: "Carol", ballColor: .black, hoopsRun: 0, score: 0),
-            Player(name: "Dave", ballColor: .yellow, hoopsRun: 3, score: 0)
+            Player(name: "Alice", ballColor: .blue),
+            Player(name: "Bob", ballColor: .red),
+            Player(name: "Carol", ballColor: .black),
+            Player(name: "Dave", ballColor: .yellow)
         ]
         
-        var sampleMatrix = Array(repeating: Array(repeating: false, count: 4), count: 4)
-        sampleMatrix[0][1] = true // Alice dead on Bob
-        sampleMatrix[2][3] = true // Carol dead on Dave
+        var sampleGame = Game(players: samplePlayers, tournament: "Sample Tournament")
         
-        currentGame = Game(
-            id: "sample-game",
-            tournament: "Sample Tournament",
-            players: samplePlayers,
-            deadnessMatrix: sampleMatrix,
-            currentStriker: 0,
-            hoopProgression: [2, 1, 0, 3],
-            timestamp: Date(),
-            status: .active
-        )
+        // Set some sample deadness
+        sampleGame.setDeadness(from: 0, to: 1, isDead: true) // Alice dead on Bob
+        sampleGame.setDeadness(from: 2, to: 3, isDead: true) // Carol dead on Dave
+        
+        currentGame = sampleGame
     }
     #endif
 }

@@ -6,32 +6,17 @@ struct GameControlsView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            // Current striker controls
             if let game = gameViewModel.currentGame {
-                HStack {
-                    Text("Current Striker:")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    Button("Next Striker") {
-                        gameViewModel.nextStriker()
-                    }
-                    .buttonStyle(.bordered)
-                }
                 
-                // Hoop progression controls
+                // Player deadness controls
                 VStack {
-                    Text("Hoop Progression")
+                    Text("Clear Deadness by Player")
                         .font(.headline)
                     
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
                         ForEach(game.players.indices, id: \.self) { index in
-                            HoopProgressionCard(
+                            PlayerDeadnessCard(
                                 player: game.players[index],
-                                onHoopRun: {
-                                    gameViewModel.runHoop(for: index)
-                                },
                                 onClearDeadness: {
                                     gameViewModel.clearAllDeadness(for: index)
                                 }
@@ -40,25 +25,28 @@ struct GameControlsView: View {
                     }
                 }
                 
-                // Action buttons
-                HStack(spacing: 16) {
-                    Button("Undo Last Action") {
-                        gameViewModel.undoLastAction()
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(!gameViewModel.canUndo)
-                    
+                // Global action buttons
+                VStack(spacing: 12) {
                     Button("Clear All Deadness") {
                         gameViewModel.clearAllDeadness()
                     }
                     .buttonStyle(.bordered)
                     .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity)
                     
-                    Button("End Game") {
-                        gameViewModel.endGame()
+                    HStack(spacing: 16) {
+                        Button("Undo Last Change") {
+                            gameViewModel.undoLastAction()
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(!gameViewModel.canUndo)
+                        
+                        Button("End Session") {
+                            gameViewModel.endGame()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
                 }
             }
         }
@@ -69,9 +57,8 @@ struct GameControlsView: View {
     }
 }
 
-struct HoopProgressionCard: View {
+struct PlayerDeadnessCard: View {
     let player: Player
-    let onHoopRun: () -> Void
     let onClearDeadness: () -> Void
     
     var body: some View {
@@ -88,22 +75,7 @@ struct HoopProgressionCard: View {
                 Spacer()
             }
             
-            HStack {
-                Text("Hoop \(player.hoopsRun + 1)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                
-                Spacer()
-                
-                Button("Run Hoop") {
-                    onHoopRun()
-                }
-                .buttonStyle(.borderless)
-                .font(.caption)
-                .disabled(player.hoopsRun >= 12) // Rover + peg out
-            }
-            
-            Button("Clear Deadness") {
+            Button("Clear All Deadness") {
                 onClearDeadness()
             }
             .buttonStyle(.borderless)

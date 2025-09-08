@@ -1,5 +1,8 @@
 import Foundation
 import Combine
+import FirebaseDatabase
+import FirebaseCore
+import SharedModels
 
 protocol FirebaseGameService {
     func updateGame(_ game: Game?)
@@ -8,17 +11,21 @@ protocol FirebaseGameService {
     func createNewGame(_ game: Game) async throws
     func joinGame(gameId: String) async throws -> Game?
     func deleteGame(gameId: String) async throws
+    func setCurrentGame(gameId: String?)
 }
 
 class FirebaseGameServiceImpl: FirebaseGameService, ObservableObject {
     @Published var isConnected: Bool = false
     @Published var currentError: Error?
     
-    private var gameListener: Any?
+    private var gameListener: DatabaseHandle?
     private var currentGameId: String?
     private var cancellables = Set<AnyCancellable>()
+    private let database: DatabaseReference
     
     init() {
+        // Initialize Firebase Database reference
+        self.database = Database.database().reference()
         setupFirebase()
     }
     
@@ -29,37 +36,52 @@ class FirebaseGameServiceImpl: FirebaseGameService, ObservableObject {
     // MARK: - Firebase Setup
     
     private func setupFirebase() {
-        // Firebase initialization will be done here
-        // This is a placeholder for the actual Firebase implementation
-        
-        // For now, simulate connection
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.isConnected = true
+        // Monitor connection state
+        let connectedRef = Database.database().reference(withPath: ".info/connected")
+        connectedRef.observe(.value) { [weak self] snapshot in
+            guard let self = self else { return }
+            
+            if let connected = snapshot.value as? Bool, connected {
+                self.handleConnectionStateChange(true)
+            } else {
+                self.handleConnectionStateChange(false)
+            }
         }
     }
     
     // MARK: - Game Operations
     
     func createNewGame(_ game: Game) async throws {
-        // Implementation for creating a new game in Firebase
-        try await Task.sleep(nanoseconds: 500_000_000) // Simulate network delay
-        
-        // Store the game in Firebase Realtime Database
-        // await firebaseRef.child("games").child(game.id).setValue(game.firebaseData)
-        
-        currentGameId = game.id
+        do {
+            try await database.child("games").child(game.id).setValue(game.firebaseData)
+            currentGameId = game.id
+        } catch {
+            throw FirebaseServiceError.networkError(error)
+        }
     }
     
     func joinGame(gameId: String) async throws -> Game? {
-        // Implementation for joining an existing game
-        try await Task.sleep(nanoseconds: 500_000_000) // Simulate network delay
-        
-        // Fetch game from Firebase
-        // let snapshot = await firebaseRef.child("games").child(gameId).getData()
-        // return Game.fromFirebaseData(snapshot.value)
-        
-        currentGameId = gameId
-        return nil // Placeholder
+        do {
+            let snapshot = try await database.child("games").child(gameId).getData()
+            
+            guard let gameData = snapshot.value as? [String: Any] else {
+                throw FirebaseServiceError.gameNotFound
+            }
+            
+            guard let game = Game.fromFirebaseData(gameData) else {
+                throw FirebaseServiceError.invalidGameData
+            }
+            
+            currentGameId = gameId
+            return game
+            
+        } catch {
+            if error is FirebaseServiceError {
+                throw error
+            } else {
+                throw FirebaseServiceError.networkError(error)
+            }
+        }
     }
     
     func updateGame(_ game: Game?) {
@@ -67,21 +89,22 @@ class FirebaseGameServiceImpl: FirebaseGameService, ObservableObject {
               let gameId = currentGameId else { return }
         
         // Update game in Firebase Realtime Database
-        // firebaseRef.child("games").child(gameId).setValue(game.firebaseData)
-        
-        // For testing, we'll simulate the update
-        print("Updating game \(gameId) in Firebase")
+        database.child("games").child(gameId).setValue(game.firebaseData) { [weak self] error, _ in
+            if let error = error {
+                self?.handleError(FirebaseServiceError.networkError(error))
+            }
+        }
     }
     
     func deleteGame(gameId: String) async throws {
-        // Implementation for deleting a game
-        try await Task.sleep(nanoseconds: 500_000_000) // Simulate network delay
-        
-        // Delete from Firebase
-        // await firebaseRef.child("games").child(gameId).removeValue()
-        
-        if currentGameId == gameId {
-            currentGameId = nil
+        do {
+            try await database.child("games").child(gameId).removeValue()
+            
+            if currentGameId == gameId {
+                currentGameId = nil
+            }
+        } catch {
+            throw FirebaseServiceError.networkError(error)
         }
     }
     
@@ -93,28 +116,45 @@ class FirebaseGameServiceImpl: FirebaseGameService, ObservableObject {
             return
         }
         
-        // Start listening for changes in Firebase
-        // gameListener = firebaseRef.child("games").child(gameId).observe(.value) { snapshot in
-        //     if let gameData = snapshot.value {
-        //         let game = Game.fromFirebaseData(gameData)
-        //         completion(game)
-        //     } else {
-        //         completion(nil)
-        //     }
-        // }
+        // Stop any existing listener first
+        stopListening()
         
-        // For testing, simulate listening with sample data
-        print("Started listening for game updates: \(gameId)")
+        // Start listening for real-time changes in Firebase
+        gameListener = database.child("games").child(gameId).observe(.value) { [weak self] snapshot in
+            guard let self = self else { return }
+            
+            if let gameData = snapshot.value as? [String: Any] {
+                let game = Game.fromFirebaseData(gameData)
+                DispatchQueue.main.async {
+                    completion(game)
+                }
+            } else {
+                // Game was deleted or doesn't exist
+                DispatchQueue.main.async {
+                    completion(nil)
+                    self.currentGameId = nil
+                }
+            }
+        } withCancel: { [weak self] error in
+            self?.handleError(FirebaseServiceError.networkError(error))
+            DispatchQueue.main.async {
+                completion(nil)
+            }
+        }
     }
     
     func stopListening() {
-        guard let listener = gameListener else { return }
+        guard let listener = gameListener,
+              let gameId = currentGameId else { return }
         
         // Remove Firebase listener
-        // firebaseRef.removeObserver(withHandle: listener)
-        
+        database.child("games").child(gameId).removeObserver(withHandle: listener)
         gameListener = nil
-        print("Stopped listening for game updates")
+    }
+    
+    func setCurrentGame(gameId: String?) {
+        stopListening() // Stop listening to previous game
+        currentGameId = gameId
     }
     
     // MARK: - Connection Management
@@ -174,8 +214,6 @@ extension Game {
             "tournament": tournament ?? "",
             "players": players.map { $0.firebaseData },
             "deadnessMatrix": deadnessMatrix,
-            "currentStriker": currentStriker,
-            "hoopProgression": hoopProgression,
             "timestamp": timestamp.timeIntervalSince1970,
             "status": status.rawValue
         ]
@@ -185,8 +223,6 @@ extension Game {
         guard let id = data["id"] as? String,
               let playersData = data["players"] as? [[String: Any]],
               let deadnessMatrix = data["deadnessMatrix"] as? [[Bool]],
-              let currentStriker = data["currentStriker"] as? Int,
-              let hoopProgression = data["hoopProgression"] as? [Int],
               let timestampInterval = data["timestamp"] as? TimeInterval,
               let statusRaw = data["status"] as? String,
               let status = GameStatus(rawValue: statusRaw) else {
@@ -203,8 +239,6 @@ extension Game {
             tournament: tournament,
             players: players,
             deadnessMatrix: deadnessMatrix,
-            currentStriker: currentStriker,
-            hoopProgression: hoopProgression,
             timestamp: Date(timeIntervalSince1970: timestampInterval),
             status: status
         )
@@ -216,9 +250,7 @@ extension Player {
         return [
             "id": id,
             "name": name,
-            "ballColor": ballColor.rawValue,
-            "hoopsRun": hoopsRun,
-            "score": score
+            "ballColor": ballColor.rawValue
         ]
     }
     
@@ -226,18 +258,14 @@ extension Player {
         guard let id = data["id"] as? String,
               let name = data["name"] as? String,
               let ballColorRaw = data["ballColor"] as? String,
-              let ballColor = BallColor(rawValue: ballColorRaw),
-              let hoopsRun = data["hoopsRun"] as? Int,
-              let score = data["score"] as? Int else {
+              let ballColor = BallColor(rawValue: ballColorRaw) else {
             return nil
         }
         
         return Player(
             id: id,
             name: name,
-            ballColor: ballColor,
-            hoopsRun: hoopsRun,
-            score: score
+            ballColor: ballColor
         )
     }
 }

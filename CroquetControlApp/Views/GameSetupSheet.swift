@@ -6,21 +6,12 @@ struct GameSetupSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var playerNames = ["", "", "", ""]
-    @State private var gameFormat: GameFormat = .singles
     @State private var tournamentInfo = ""
     
     var body: some View {
         NavigationView {
             Form {
-                Section("Game Format") {
-                    Picker("Format", selection: $gameFormat) {
-                        Text("Singles").tag(GameFormat.singles)
-                        Text("Doubles").tag(GameFormat.doubles)
-                    }
-                    .pickerStyle(.segmented)
-                }
-                
-                Section("Players") {
+                Section("Players & Ball Colors") {
                     ForEach(0..<4, id: \.self) { index in
                         HStack {
                             Circle()
@@ -43,7 +34,7 @@ struct GameSetupSheet: View {
                         .textFieldStyle(.roundedBorder)
                 }
             }
-            .navigationTitle("New Game Setup")
+            .navigationTitle("Deadness Board Setup")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -68,22 +59,16 @@ struct GameSetupSheet: View {
     
     private func startNewGame() {
         let players = zip(playerNames, BallColor.allCases).map { name, color in
-            Player(name: name.trimmingCharacters(in: .whitespacesAndNewlines), ballColor: color, hoopsRun: 0, score: 0)
+            Player(name: name.trimmingCharacters(in: .whitespacesAndNewlines), ballColor: color)
         }
         
         gameViewModel.startNewGame(
             players: players,
-            format: gameFormat,
             tournamentInfo: tournamentInfo.isEmpty ? nil : tournamentInfo
         )
         
         dismiss()
     }
-}
-
-enum GameFormat: String, CaseIterable {
-    case singles = "Singles"
-    case doubles = "Doubles"
 }
 
 #Preview {

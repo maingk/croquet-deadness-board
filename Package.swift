@@ -12,10 +12,6 @@ let package = Package(
         .library(
             name: "SharedModels",
             targets: ["SharedModels"]
-        ),
-        .library(
-            name: "SharedServices",
-            targets: ["SharedServices"]
         )
     ],
     dependencies: [
@@ -24,31 +20,15 @@ let package = Package(
     targets: [
         .target(
             name: "SharedModels",
-            dependencies: [],
-            path: "Shared/Models"
-        ),
-        .target(
-            name: "SharedServices",
             dependencies: [
-                "SharedModels",
-                .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
-                .product(name: "FirebaseDatabase", package: "firebase-ios-sdk"),
-                .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
-                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
-                .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
-                .product(name: "FirebasePerformance", package: "firebase-ios-sdk")
+                .product(name: "FirebaseDatabase", package: "firebase-ios-sdk")
             ],
-            path: "Shared/Services"
+            path: "Shared"
         ),
         .testTarget(
             name: "SharedModelsTests",
             dependencies: ["SharedModels"],
             path: "Tests/SharedModelsTests"
-        ),
-        .testTarget(
-            name: "SharedServicesTests",
-            dependencies: ["SharedServices"],
-            path: "Tests/SharedServicesTests"
         )
     ]
 )

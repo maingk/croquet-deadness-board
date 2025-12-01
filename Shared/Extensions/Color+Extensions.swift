@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 extension Color {
     // MARK: - Croquet Theme Colors
@@ -110,6 +113,7 @@ extension Color {
 
 // MARK: - Theme Support
 
+#if canImport(UIKit)
 extension Color {
     static func adaptiveColor(light: Color, dark: Color) -> Color {
         return Color(UIColor { traitCollection in
@@ -122,3 +126,4 @@ extension Color {
         })
     }
 }
+#endif

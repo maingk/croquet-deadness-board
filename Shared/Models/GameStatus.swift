@@ -1,6 +1,6 @@
 import Foundation
 
-enum GameStatus: String, Codable, CaseIterable {
+public enum GameStatus: String, Codable, CaseIterable {
     case setup = "setup"
     case active = "active"
     case paused = "paused"

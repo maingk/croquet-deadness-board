@@ -2,9 +2,8 @@ import Foundation
 import Combine
 import FirebaseDatabase
 import FirebaseCore
-import SharedModels
 
-protocol FirebaseGameService {
+public protocol FirebaseGameService {
     func updateGame(_ game: Game?)
     func startListening(completion: @escaping (Game?) -> Void)
     func stopListening()
@@ -234,11 +233,16 @@ extension Game {
         
         let tournament = (data["tournament"] as? String)?.isEmpty == false ? data["tournament"] as? String : nil
         
+        let currentStriker = data["currentStriker"] as? Int ?? 0
+        let hoopProgression = data["hoopProgression"] as? [Int] ?? Array(repeating: 0, count: players.count)
+
         return Game(
             id: id,
             tournament: tournament,
             players: players,
             deadnessMatrix: deadnessMatrix,
+            currentStriker: currentStriker,
+            hoopProgression: hoopProgression,
             timestamp: Date(timeIntervalSince1970: timestampInterval),
             status: status
         )

@@ -1,13 +1,13 @@
 import Foundation
 import SwiftUI
 
-enum BallColor: String, CaseIterable, Codable {
+public enum BallColor: String, CaseIterable, Codable {
     case blue = "Blue"
     case red = "Red"
     case black = "Black"
     case yellow = "Yellow"
     
-    var color: Color {
+    public var color: Color {
         switch self {
         case .blue:
             return .blue
@@ -56,7 +56,7 @@ enum BallColor: String, CaseIterable, Codable {
 }
 
 extension BallColor: Comparable {
-    static func < (lhs: BallColor, rhs: BallColor) -> Bool {
+    public static func < (lhs: BallColor, rhs: BallColor) -> Bool {
         let order: [BallColor] = [.blue, .red, .black, .yellow]
         guard let lhsIndex = order.firstIndex(of: lhs),
               let rhsIndex = order.firstIndex(of: rhs) else {

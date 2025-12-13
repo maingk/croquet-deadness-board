@@ -1,4 +1,5 @@
 import SwiftUI
+import SharedModels
 
 struct GameInfoPanelView: View {
     let game: Game

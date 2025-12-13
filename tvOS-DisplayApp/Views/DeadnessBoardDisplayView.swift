@@ -1,4 +1,5 @@
 import SwiftUI
+import SharedModels
 
 struct DeadnessBoardDisplayView: View {
     let game: Game

@@ -1,4 +1,5 @@
 import SwiftUI
+import SharedModels
 
 struct DisplayContentView: View {
     @StateObject private var displayViewModel = DisplayViewModel()

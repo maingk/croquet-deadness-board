@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import SharedModels
 
 class DisplayViewModel: ObservableObject {
     @Published var currentGame: Game?

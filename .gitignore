@@ -121,4 +121,6 @@ TestResults/
 coverage/
 
 # App-specific
-# Add any app-specific files or directories to ignore
+# Add any app-specific files or directories to ignoreGoogleService-Info.plist
+*.xcuserdata
+.DS_Store

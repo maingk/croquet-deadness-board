@@ -5,16 +5,19 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
+            VStack(spacing: 10) {
                 GameSetupView()
                     .environmentObject(gameViewModel)
-                
+
                 DeadnessGridView()
                     .environmentObject(gameViewModel)
-                
+
                 GameControlsView()
                     .environmentObject(gameViewModel)
+
+                Spacer(minLength: 0)
             }
+            .padding(.top, 8)
             .navigationTitle("Croquet Control")
             .navigationBarTitleDisplayMode(.inline)
         }

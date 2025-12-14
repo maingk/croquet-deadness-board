@@ -5,33 +5,13 @@ struct GameSetupView: View {
     @State private var showingSetup = false
     
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("Current Game")
-                    .font(.headline)
-                
-                Spacer()
-                
-                Button("Setup New Game") {
-                    showingSetup = true
-                }
-                .buttonStyle(.borderedProminent)
+        HStack {
+            Button("Setup New Game") {
+                showingSetup = true
             }
-            
-            if let game = gameViewModel.currentGame {
-                HStack(spacing: 16) {
-                    ForEach(game.players.indices, id: \.self) { index in
-                        PlayerCard(player: game.players[index], isCurrentStriker: index == game.currentStriker)
-                    }
-                }
-            } else {
-                Text("No active game")
-                    .foregroundStyle(.secondary)
-            }
+            .buttonStyle(.borderedProminent)
+            .frame(maxWidth: .infinity)
         }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
         .padding(.horizontal)
         .sheet(isPresented: $showingSetup) {
             GameSetupSheet()
@@ -43,21 +23,21 @@ struct GameSetupView: View {
 struct PlayerCard: View {
     let player: Player
     let isCurrentStriker: Bool
-    
+
     var body: some View {
-        VStack {
+        VStack(spacing: 6) {
             Circle()
                 .fill(player.ballColor.color)
-                .frame(width: 40, height: 40)
+                .frame(width: 44, height: 44)
                 .overlay(
                     Circle()
                         .stroke(isCurrentStriker ? Color.primary : Color.clear, lineWidth: 3)
                 )
-            
+
             Text(player.name)
                 .font(.caption)
                 .lineLimit(1)
-            
+
             Text("Hoop \(player.hoopsRun + 1)")
                 .font(.caption2)
                 .foregroundStyle(.secondary)

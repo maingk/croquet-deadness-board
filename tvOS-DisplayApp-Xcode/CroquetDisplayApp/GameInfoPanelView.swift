@@ -61,10 +61,13 @@ struct GameInfoPanelView: View {
                 Text("HOOP PROGRESSION")
                     .font(.system(size: 20, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
-                
+
                 VStack(spacing: 12) {
                     ForEach(game.players.indices, id: \.self) { index in
-                        HoopProgressRow(player: game.players[index])
+                        HoopProgressRow(
+                            player: game.players[index],
+                            hoopsCompleted: game.hoopProgression[index]
+                        )
                     }
                 }
             }
@@ -118,27 +121,28 @@ struct GameInfoPanelView: View {
 
 struct HoopProgressRow: View {
     let player: Player
-    
+    let hoopsCompleted: Int
+
     var body: some View {
         HStack(spacing: 12) {
             Circle()
                 .fill(player.ballColor.color)
                 .frame(width: 32, height: 32)
-            
+
             Text(player.name)
                 .font(.system(size: 18, weight: .medium, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            
+
             Text(hoopDisplayText)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
         }
     }
-    
+
     private var hoopDisplayText: String {
-        switch player.hoopsRun {
+        switch hoopsCompleted {
         case 0...11:
-            return "Hoop \(player.hoopsRun + 1)"
+            return "Hoop \(hoopsCompleted + 1)"
         case 12:
             return "Rover"
         case 13:

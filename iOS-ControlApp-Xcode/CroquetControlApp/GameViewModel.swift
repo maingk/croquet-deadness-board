@@ -53,57 +53,59 @@ class GameViewModel: ObservableObject {
     
     func toggleDeadness(from: Int, to: Int) {
         guard var game = currentGame, from != to else { return }
-        
+
         saveCurrentState()
         game.deadnessMatrix[from][to].toggle()
-        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
     }
     
     func nextStriker() {
         guard var game = currentGame else { return }
-        
+
         saveCurrentState()
         game.currentStriker = (game.currentStriker + 1) % game.players.count
-        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
     }
     
     func runHoop(for playerIndex: Int) {
         guard var game = currentGame, playerIndex < game.players.count else { return }
-        
+
         saveCurrentState()
         game.players[playerIndex].hoopsRun += 1
         game.hoopProgression[playerIndex] = game.players[playerIndex].hoopsRun
-        game.timestamp = Date()
+
+        // Auto-clear deadness when running a hoop (croquet rules)
+        for i in 0..<4 {
+            game.deadnessMatrix[playerIndex][i] = false
+            game.deadnessMatrix[i][playerIndex] = false
+        }
+
         currentGame = game
         syncToFirebase()
     }
     
     func clearAllDeadness(for playerIndex: Int) {
         guard var game = currentGame, playerIndex < game.players.count else { return }
-        
+
         saveCurrentState()
-        
+
         // Clear deadness for this player (both directions)
         for i in 0..<4 {
             game.deadnessMatrix[playerIndex][i] = false
             game.deadnessMatrix[i][playerIndex] = false
         }
-        
-        game.timestamp = Date()
+
         currentGame = game
         syncToFirebase()
     }
     
     func clearAllDeadness() {
         guard var game = currentGame else { return }
-        
+
         saveCurrentState()
         game.deadnessMatrix = Array(repeating: Array(repeating: false, count: 4), count: 4)
-        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
     }
@@ -118,12 +120,11 @@ class GameViewModel: ObservableObject {
     
     func endGame() {
         guard var game = currentGame else { return }
-        
+
         game.status = .completed
-        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
-        
+
         // Clear after a delay to allow viewing final state
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             self.currentGame = nil

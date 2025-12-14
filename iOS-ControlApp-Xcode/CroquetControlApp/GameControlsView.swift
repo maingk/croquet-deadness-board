@@ -4,64 +4,64 @@ struct GameControlsView: View {
     @EnvironmentObject var gameViewModel: GameViewModel
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             // Current striker controls
             if let game = gameViewModel.currentGame {
                 HStack {
                     Text("Current Striker:")
                         .font(.headline)
-                    
+
                     Spacer()
-                    
+
                     Button("Next Striker") {
                         gameViewModel.nextStriker()
                     }
                     .buttonStyle(.bordered)
                 }
-                
+
                 // Hoop progression controls
-                VStack {
+                VStack(spacing: 8) {
                     Text("Hoop Progression")
                         .font(.headline)
-                    
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
+
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 10) {
                         ForEach(game.players.indices, id: \.self) { index in
                             HoopProgressionCard(
                                 player: game.players[index],
                                 onHoopRun: {
                                     gameViewModel.runHoop(for: index)
-                                },
-                                onClearDeadness: {
-                                    gameViewModel.clearAllDeadness(for: index)
                                 }
                             )
                         }
                     }
                 }
-                
+
                 // Action buttons
-                HStack(spacing: 16) {
-                    Button("Undo Last Action") {
-                        gameViewModel.undoLastAction()
+                VStack(spacing: 8) {
+                    HStack(spacing: 10) {
+                        Button("Undo Last Action") {
+                            gameViewModel.undoLastAction()
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(!gameViewModel.canUndo)
+
+                        Button("Clear All Deadness") {
+                            gameViewModel.clearAllDeadness()
+                        }
+                        .buttonStyle(.bordered)
+                        .foregroundStyle(.red)
                     }
-                    .buttonStyle(.bordered)
-                    .disabled(!gameViewModel.canUndo)
-                    
-                    Button("Clear All Deadness") {
-                        gameViewModel.clearAllDeadness()
-                    }
-                    .buttonStyle(.bordered)
-                    .foregroundStyle(.red)
-                    
+
                     Button("End Game") {
                         gameViewModel.endGame()
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.red)
+                    .frame(maxWidth: .infinity)
                 }
             }
         }
-        .padding()
+        .padding(12)
         .background(Color(.systemGray6))
         .cornerRadius(12)
         .padding(.horizontal)
@@ -71,45 +71,36 @@ struct GameControlsView: View {
 struct HoopProgressionCard: View {
     let player: Player
     let onHoopRun: () -> Void
-    let onClearDeadness: () -> Void
-    
+
     var body: some View {
-        VStack(spacing: 8) {
-            HStack {
+        VStack(alignment: .leading, spacing: 8) {
+            // Player name with color indicator
+            HStack(spacing: 6) {
                 Circle()
                     .fill(player.ballColor.color)
-                    .frame(width: 24, height: 24)
-                
+                    .frame(width: 20, height: 20)
+
                 Text(player.name)
                     .font(.subheadline)
-                    .fontWeight(.medium)
-                
+                    .fontWeight(.semibold)
+
                 Spacer()
-            }
-            
-            HStack {
+
                 Text("Hoop \(player.hoopsRun + 1)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                
-                Spacer()
-                
-                Button("Run Hoop") {
-                    onHoopRun()
-                }
-                .buttonStyle(.borderless)
-                .font(.caption)
-                .disabled(player.hoopsRun >= 12) // Rover + peg out
             }
-            
-            Button("Clear Deadness") {
-                onClearDeadness()
+
+            // Run Hoop button
+            Button("Run Hoop") {
+                onHoopRun()
             }
-            .buttonStyle(.borderless)
-            .font(.caption)
-            .foregroundStyle(.orange)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .disabled(player.hoopsRun >= 12)
+            .frame(maxWidth: .infinity)
         }
-        .padding(8)
+        .padding(10)
         .background(Color(.systemBackground))
         .cornerRadius(8)
     }

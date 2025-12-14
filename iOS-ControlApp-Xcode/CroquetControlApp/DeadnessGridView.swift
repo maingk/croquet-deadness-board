@@ -7,31 +7,33 @@ struct DeadnessGridView: View {
         VStack(spacing: 8) {
             Text("Deadness Matrix")
                 .font(.headline)
-                .padding(.bottom, 4)
-            
+                .padding(.bottom, 2)
+
             if gameViewModel.currentGame != nil {
                 let game = gameViewModel.currentGame!
-                VStack(spacing: 2) {
+                VStack(spacing: 6) {
                     // Header row with player colors
-                    HStack(spacing: 2) {
+                    HStack(spacing: 6) {
                         Color.clear
-                            .frame(width: 60, height: 40)
-                        
+                            .frame(width: 40, height: 40)
+
                         ForEach(game.players.indices, id: \.self) { index in
                             Circle()
                                 .fill(game.players[index].ballColor.color)
                                 .frame(width: 40, height: 40)
+                                .frame(width: 68)
                         }
                     }
-                    
+
                     // Grid rows
                     ForEach(game.players.indices, id: \.self) { row in
-                        HStack(spacing: 2) {
+                        HStack(spacing: 6) {
                             // Row header
                             Circle()
                                 .fill(game.players[row].ballColor.color)
                                 .frame(width: 40, height: 40)
-                            
+                                .frame(height: 68)
+
                             // Deadness cells
                             ForEach(game.players.indices, id: \.self) { col in
                                 DeadnessCell(
@@ -63,10 +65,10 @@ struct DeadnessCell: View {
         Button(action: onToggle) {
             RoundedRectangle(cornerRadius: 8)
                 .fill(cellColor)
-                .frame(width: 60, height: 60)
+                .frame(width: 68, height: 68)
                 .overlay(
                     Image(systemName: isDead ? "xmark" : "")
-                        .font(.title2)
+                        .font(.title)
                         .fontWeight(.bold)
                         .foregroundStyle(isDead ? .white : .clear)
                 )

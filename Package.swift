@@ -21,7 +21,8 @@ let package = Package(
         .target(
             name: "SharedModels",
             dependencies: [
-                .product(name: "FirebaseDatabase", package: "firebase-ios-sdk")
+                .product(name: "FirebaseDatabase", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk")
             ],
             path: "Shared"
         ),

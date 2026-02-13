@@ -9,8 +9,9 @@ public struct Game: Codable, Identifiable {
     public var hoopProgression: [Int]
     public var timestamp: Date
     public var status: GameStatus
+    public var creatorUid: String?
 
-    public init(id: String, tournament: String? = nil, players: [Player], deadnessMatrix: [[Bool]], currentStriker: Int, hoopProgression: [Int], timestamp: Date, status: GameStatus) {
+    public init(id: String, tournament: String? = nil, players: [Player], deadnessMatrix: [[Bool]], currentStriker: Int, hoopProgression: [Int], timestamp: Date, status: GameStatus, creatorUid: String? = nil) {
         self.id = id
         self.tournament = tournament
         self.players = players
@@ -19,10 +20,11 @@ public struct Game: Codable, Identifiable {
         self.hoopProgression = hoopProgression
         self.timestamp = timestamp
         self.status = status
+        self.creatorUid = creatorUid
     }
 
     // Convenience initializer for new games
-    public init(players: [Player], tournament: String? = nil) {
+    public init(players: [Player], tournament: String? = nil, creatorUid: String? = nil) {
         self.id = UUID().uuidString
         self.tournament = tournament
         self.players = players
@@ -31,6 +33,7 @@ public struct Game: Codable, Identifiable {
         self.hoopProgression = Array(repeating: 0, count: players.count)
         self.timestamp = Date()
         self.status = .active
+        self.creatorUid = creatorUid
     }
 }
 

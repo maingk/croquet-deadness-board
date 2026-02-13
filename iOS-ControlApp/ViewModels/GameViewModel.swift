@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import FirebaseAuth
 
 class GameViewModel: ObservableObject {
     @Published var currentGame: Game?
@@ -29,7 +30,8 @@ class GameViewModel: ObservableObject {
             currentStriker: 0,
             hoopProgression: Array(repeating: 0, count: 4),
             timestamp: Date(),
-            status: .active
+            status: .active,
+            creatorUid: Auth.auth().currentUser?.uid
         )
         
         saveCurrentState()

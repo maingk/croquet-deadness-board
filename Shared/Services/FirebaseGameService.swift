@@ -2,8 +2,11 @@ import Foundation
 import Combine
 import FirebaseDatabase
 import FirebaseCore
+import FirebaseAuth
 
 public protocol FirebaseGameService {
+    func signInAnonymously() async throws
+    var currentUserId: String? { get }
     func updateGame(_ game: Game?)
     func startListening(completion: @escaping (Game?) -> Void)
     func stopListening()
@@ -32,6 +35,16 @@ class FirebaseGameServiceImpl: FirebaseGameService, ObservableObject {
         stopListening()
     }
     
+    // MARK: - Authentication
+
+    func signInAnonymously() async throws {
+        try await Auth.auth().signInAnonymously()
+    }
+
+    var currentUserId: String? {
+        Auth.auth().currentUser?.uid
+    }
+
     // MARK: - Firebase Setup
     
     private func setupFirebase() {
@@ -208,7 +221,7 @@ enum FirebaseServiceError: LocalizedError {
 
 extension Game {
     var firebaseData: [String: Any] {
-        return [
+        var data: [String: Any] = [
             "id": id,
             "tournament": tournament ?? "",
             "players": players.map { $0.firebaseData },
@@ -216,6 +229,10 @@ extension Game {
             "timestamp": timestamp.timeIntervalSince1970,
             "status": status.rawValue
         ]
+        if let creatorUid = creatorUid {
+            data["creatorUid"] = creatorUid
+        }
+        return data
     }
     
     static func fromFirebaseData(_ data: [String: Any]) -> Game? {
@@ -235,6 +252,7 @@ extension Game {
         
         let currentStriker = data["currentStriker"] as? Int ?? 0
         let hoopProgression = data["hoopProgression"] as? [Int] ?? Array(repeating: 0, count: players.count)
+        let creatorUid = data["creatorUid"] as? String
 
         return Game(
             id: id,
@@ -244,7 +262,8 @@ extension Game {
             currentStriker: currentStriker,
             hoopProgression: hoopProgression,
             timestamp: Date(timeIntervalSince1970: timestampInterval),
-            status: status
+            status: status,
+            creatorUid: creatorUid
         )
     }
 }

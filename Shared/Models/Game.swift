@@ -8,10 +8,11 @@ public struct Game: Codable, Identifiable {
     public var currentStriker: Int
     public var hoopProgression: [Int]
     public var timestamp: Date
+    public var startTime: Date
     public var status: GameStatus
     public var creatorUid: String?
 
-    public init(id: String, tournament: String? = nil, players: [Player], deadnessMatrix: [[Bool]], currentStriker: Int, hoopProgression: [Int], timestamp: Date, status: GameStatus, creatorUid: String? = nil) {
+    public init(id: String, tournament: String? = nil, players: [Player], deadnessMatrix: [[Bool]], currentStriker: Int, hoopProgression: [Int], timestamp: Date, startTime: Date? = nil, status: GameStatus, creatorUid: String? = nil) {
         self.id = id
         self.tournament = tournament
         self.players = players
@@ -19,6 +20,7 @@ public struct Game: Codable, Identifiable {
         self.currentStriker = currentStriker
         self.hoopProgression = hoopProgression
         self.timestamp = timestamp
+        self.startTime = startTime ?? timestamp
         self.status = status
         self.creatorUid = creatorUid
     }
@@ -32,6 +34,7 @@ public struct Game: Codable, Identifiable {
         self.currentStriker = 0
         self.hoopProgression = Array(repeating: 0, count: players.count)
         self.timestamp = Date()
+        self.startTime = Date()
         self.status = .active
         self.creatorUid = creatorUid
     }

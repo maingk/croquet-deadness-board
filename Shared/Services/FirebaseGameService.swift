@@ -226,7 +226,10 @@ extension Game {
             "tournament": tournament ?? "",
             "players": players.map { $0.firebaseData },
             "deadnessMatrix": deadnessMatrix,
+            "currentStriker": currentStriker,
+            "hoopProgression": hoopProgression,
             "timestamp": timestamp.timeIntervalSince1970,
+            "startTime": startTime.timeIntervalSince1970,
             "status": status.rawValue
         ]
         if let creatorUid = creatorUid {
@@ -252,6 +255,7 @@ extension Game {
         
         let currentStriker = data["currentStriker"] as? Int ?? 0
         let hoopProgression = data["hoopProgression"] as? [Int] ?? Array(repeating: 0, count: players.count)
+        let startTimeInterval = data["startTime"] as? TimeInterval
         let creatorUid = data["creatorUid"] as? String
 
         return Game(
@@ -262,6 +266,7 @@ extension Game {
             currentStriker: currentStriker,
             hoopProgression: hoopProgression,
             timestamp: Date(timeIntervalSince1970: timestampInterval),
+            startTime: startTimeInterval.map { Date(timeIntervalSince1970: $0) },
             status: status,
             creatorUid: creatorUid
         )

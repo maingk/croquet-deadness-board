@@ -32,8 +32,14 @@ class DisplayViewModel: ObservableObject {
         // Start listening for game updates from Firebase
         firebaseService?.startListening { [weak self] game in
             DispatchQueue.main.async {
-                self?.currentGame = game
-                self?.connectionStatus = game != nil ? .connected : .disconnected
+                // Treat completed games as no active game
+                if let game = game, game.status == .active {
+                    self?.currentGame = game
+                    self?.connectionStatus = .connected
+                } else {
+                    self?.currentGame = nil
+                    self?.connectionStatus = .disconnected
+                }
             }
         }
     }

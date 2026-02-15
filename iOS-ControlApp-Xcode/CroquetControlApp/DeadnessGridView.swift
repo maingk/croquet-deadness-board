@@ -5,9 +5,11 @@ struct DeadnessGridView: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            Text("Deadness Matrix")
-                .font(.headline)
-                .padding(.bottom, 2)
+            if gameViewModel.currentGame != nil {
+                Text("Deadness Matrix")
+                    .font(.headline)
+                    .padding(.bottom, 2)
+            }
 
             if gameViewModel.currentGame != nil {
                 let game = gameViewModel.currentGame!
@@ -46,10 +48,6 @@ struct DeadnessGridView: View {
                         }
                     }
                 }
-            } else {
-                Text("No active game")
-                    .foregroundStyle(.secondary)
-                    .padding()
             }
         }
         .padding()

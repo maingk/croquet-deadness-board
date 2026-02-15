@@ -18,8 +18,6 @@ struct ContentView: View {
                 Spacer(minLength: 0)
             }
             .padding(.top, 8)
-            .navigationTitle("Croquet Control")
-            .navigationBarTitleDisplayMode(.inline)
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }

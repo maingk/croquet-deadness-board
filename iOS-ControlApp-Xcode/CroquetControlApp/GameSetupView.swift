@@ -5,14 +5,28 @@ struct GameSetupView: View {
     @State private var showingSetup = false
     
     var body: some View {
-        HStack {
-            Button("Setup New Game") {
-                showingSetup = true
+        Group {
+            if gameViewModel.currentGame == nil {
+                GeometryReader { geometry in
+                    VStack(spacing: 30) {
+                        Spacer()
+                            .frame(height: geometry.size.height * 0.10)
+
+                        Button("Setup New Game") {
+                            showingSetup = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+
+                        Image("ClubLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 200)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal)
         .sheet(isPresented: $showingSetup) {
             GameSetupSheet()
                 .environmentObject(gameViewModel)

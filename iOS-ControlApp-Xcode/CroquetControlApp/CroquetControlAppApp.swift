@@ -1,6 +1,6 @@
-
 import SwiftUI
 import FirebaseCore
+import FirebaseAuth
 
 @main
 struct CroquetControlApp: App {
@@ -11,7 +11,13 @@ struct CroquetControlApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task {
+                    do {
+                        try await Auth.auth().signInAnonymously()
+                    } catch {
+                        print("Anonymous auth failed: \(error.localizedDescription)")
+                    }
+                }
         }
     }
 }
-

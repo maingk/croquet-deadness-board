@@ -11,6 +11,14 @@ struct GameControlsView: View {
                     Text("Current Striker:")
                         .font(.headline)
 
+                    Circle()
+                        .fill(game.players[game.currentStriker].ballColor.color)
+                        .frame(width: 24, height: 24)
+
+                    Text(game.players[game.currentStriker].name)
+                        .font(.headline)
+                        .fontWeight(.bold)
+
                     Spacer()
 
                     Button("Next Striker") {

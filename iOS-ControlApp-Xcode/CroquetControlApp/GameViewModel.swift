@@ -1,10 +1,6 @@
 import SwiftUI
 import Combine
-
-enum GameFormat: String, CaseIterable {
-    case singles = "Singles"
-    case doubles = "Doubles"
-}
+import FirebaseAuth
 
 class GameViewModel: ObservableObject {
     @Published var currentGame: Game?
@@ -13,23 +9,21 @@ class GameViewModel: ObservableObject {
     private var gameHistory: [Game] = []
     private var cancellables = Set<AnyCancellable>()
     
-    // Firebase service
     private var firebaseService: FirebaseGameService?
 
     init() {
-        // Initialize Firebase service
-        self.firebaseService = FirebaseGameServiceImpl()
+        let service = FirebaseGameServiceImpl()
+        service.setCurrentGame(gameId: "latest")
+        self.firebaseService = service
 
-        // Initialize with sample game for preview purposes
         #if DEBUG
         if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
             startSampleGame()
         }
         #endif
     }
-
+    
     func startNewGame(players: [Player], format: GameFormat, tournamentInfo: String?) {
-        // Use "latest" as a fixed game ID so all devices connect to the same game
         let newGame = Game(
             id: "latest",
             tournament: tournamentInfo,
@@ -38,74 +32,68 @@ class GameViewModel: ObservableObject {
             currentStriker: 0,
             hoopProgression: Array(repeating: 0, count: 4),
             timestamp: Date(),
-            status: .active
+            status: .active,
+            creatorUid: Auth.auth().currentUser?.uid
         )
 
         saveCurrentState()
         currentGame = newGame
-
-        // Create game in Firebase
-        firebaseService?.setCurrentGame(gameId: newGame.id)
-        Task {
-            try? await firebaseService?.createNewGame(newGame)
-        }
+        syncToFirebase()
     }
     
     func toggleDeadness(from: Int, to: Int) {
         guard var game = currentGame, from != to else { return }
-
+        
         saveCurrentState()
         game.deadnessMatrix[from][to].toggle()
+        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
     }
     
     func nextStriker() {
         guard var game = currentGame else { return }
-
+        
         saveCurrentState()
         game.currentStriker = (game.currentStriker + 1) % game.players.count
+        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
     }
     
     func runHoop(for playerIndex: Int) {
         guard var game = currentGame, playerIndex < game.players.count else { return }
-
+        
         saveCurrentState()
         game.players[playerIndex].hoopsRun += 1
         game.hoopProgression[playerIndex] = game.players[playerIndex].hoopsRun
-
-        // Auto-clear deadness when running a hoop (croquet rules)
-        for i in 0..<4 {
-            game.deadnessMatrix[playerIndex][i] = false
-            game.deadnessMatrix[i][playerIndex] = false
-        }
-
+        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
     }
     
     func clearAllDeadness(for playerIndex: Int) {
         guard var game = currentGame, playerIndex < game.players.count else { return }
-
+        
         saveCurrentState()
-
+        
         // Clear deadness for this player (both directions)
         for i in 0..<4 {
             game.deadnessMatrix[playerIndex][i] = false
             game.deadnessMatrix[i][playerIndex] = false
         }
-
+        
+        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
     }
     
     func clearAllDeadness() {
         guard var game = currentGame else { return }
-
+        
         saveCurrentState()
         game.deadnessMatrix = Array(repeating: Array(repeating: false, count: 4), count: 4)
+        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
     }
@@ -120,11 +108,12 @@ class GameViewModel: ObservableObject {
     
     func endGame() {
         guard var game = currentGame else { return }
-
+        
         game.status = .completed
+        game.timestamp = Date()
         currentGame = game
         syncToFirebase()
-
+        
         // Clear after a delay to allow viewing final state
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             self.currentGame = nil

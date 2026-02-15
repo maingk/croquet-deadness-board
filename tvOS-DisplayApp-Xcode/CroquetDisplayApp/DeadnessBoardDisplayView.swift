@@ -14,11 +14,12 @@ struct DeadnessBoardDisplayView: View {
             VStack(spacing: 8) {
                 // Header row with player info
                 HStack(spacing: 8) {
-                    Spacer()
-                        .frame(width: 120)
-                    
+                    Color.clear
+                        .frame(width: 120, height: 0)
+
                     ForEach(game.players.indices, id: \.self) { index in
                         PlayerHeaderCell(player: game.players[index])
+                            .frame(width: 120)
                     }
                 }
                 

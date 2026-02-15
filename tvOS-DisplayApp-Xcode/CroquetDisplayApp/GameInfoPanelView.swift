@@ -13,12 +13,12 @@ struct GameInfoPanelView: View {
             if let tournament = game.tournament {
                 VStack(spacing: 8) {
                     Text("TOURNAMENT")
-                        .font(.system(size: 20, weight: .medium, design: .rounded))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 32, weight: .medium, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.9))
                     
                     Text(tournament)
                         .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
                 }
             }
@@ -28,8 +28,8 @@ struct GameInfoPanelView: View {
             // Current striker
             VStack(spacing: 16) {
                 Text("CURRENT STRIKER")
-                    .font(.system(size: 20, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 32, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.9))
                 
                 let currentPlayer = game.players[game.currentStriker]
                 
@@ -39,18 +39,18 @@ struct GameInfoPanelView: View {
                         .frame(width: 100, height: 100)
                         .overlay(
                             Circle()
-                                .stroke(.primary, lineWidth: 6)
+                                .stroke(.white, lineWidth: 6)
                         )
                         .scaleEffect(1.1)
                         .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: currentTime)
                     
                     Text(currentPlayer.name.uppercased())
                         .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
-                    
+                        .foregroundStyle(.white)
+
                     Text(currentPlayer.ballColor.rawValue.uppercased())
                         .font(.system(size: 20, weight: .medium, design: .rounded))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.8))
                 }
             }
             
@@ -59,8 +59,8 @@ struct GameInfoPanelView: View {
             // Hoop progression
             VStack(spacing: 16) {
                 Text("HOOP PROGRESSION")
-                    .font(.system(size: 20, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 32, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.9))
 
                 VStack(spacing: 12) {
                     ForEach(game.players.indices, id: \.self) { index in
@@ -77,12 +77,12 @@ struct GameInfoPanelView: View {
             // Game timer
             VStack(spacing: 8) {
                 Text("GAME TIME")
-                    .font(.system(size: 20, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 32, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.9))
                 
                 Text(gameTimeString)
-                    .font(.system(size: 32, weight: .regular, design: .monospaced))
-                    .foregroundStyle(.primary)
+                    .font(.system(size: 84, weight: .regular, design: .monospaced))
+                    .foregroundStyle(.white)
             }
             
             Spacer()
@@ -106,7 +106,7 @@ struct GameInfoPanelView: View {
     }
     
     private var gameTimeString: String {
-        let elapsed = currentTime.timeIntervalSince(game.timestamp)
+        let elapsed = currentTime.timeIntervalSince(game.startTime)
         let hours = Int(elapsed) / 3600
         let minutes = (Int(elapsed) % 3600) / 60
         let seconds = Int(elapsed) % 60
@@ -131,11 +131,12 @@ struct HoopProgressRow: View {
 
             Text(player.name)
                 .font(.system(size: 18, weight: .medium, design: .rounded))
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Text(hoopDisplayText)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
+                .foregroundStyle(.white)
         }
     }
 

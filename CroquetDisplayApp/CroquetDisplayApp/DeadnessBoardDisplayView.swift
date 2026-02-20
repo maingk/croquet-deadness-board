@@ -2,34 +2,36 @@ import SwiftUI
 
 struct DeadnessBoardDisplayView: View {
     let game: Game
-    
+
+    private let primaryText = Color(red: 0.1, green: 0.1, blue: 0.1)
+
     var body: some View {
         VStack(spacing: 24) {
             Text("DEADNESS BOARD")
-                .font(.system(size: 48, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
+                .font(.system(size: 72, weight: .bold, design: .rounded))
+                .foregroundStyle(primaryText)
                 .padding(.top, 32)
-            
+
             // Deadness grid
-            VStack(spacing: 8) {
+            VStack(spacing: 12) {
                 // Header row with player info
-                HStack(spacing: 8) {
+                HStack(spacing: 12) {
                     Color.clear
-                        .frame(width: 120, height: 0)
+                        .frame(width: 180, height: 0)
 
                     ForEach(game.players.indices, id: \.self) { index in
                         PlayerHeaderCell(player: game.players[index])
-                            .frame(width: 120)
+                            .frame(width: 180)
                     }
                 }
-                
+
                 // Grid rows
                 ForEach(game.players.indices, id: \.self) { row in
-                    HStack(spacing: 8) {
+                    HStack(spacing: 12) {
                         // Row header
                         PlayerHeaderCell(player: game.players[row])
-                            .frame(width: 120)
-                        
+                            .frame(width: 180)
+
                         // Deadness cells
                         ForEach(game.players.indices, id: \.self) { col in
                             DisplayDeadnessCell(
@@ -42,7 +44,7 @@ struct DeadnessBoardDisplayView: View {
                     }
                 }
             }
-            
+
             Spacer()
         }
         .padding()
@@ -51,30 +53,34 @@ struct DeadnessBoardDisplayView: View {
 
 struct PlayerHeaderCell: View {
     let player: Player
-    
+
+    private let primaryText = Color(red: 0.1, green: 0.1, blue: 0.1)
+    private let secondaryText = Color(red: 0.25, green: 0.25, blue: 0.25)
+    private let borderColor = Color(red: 0.3, green: 0.5, blue: 0.3)
+
     var body: some View {
         VStack(spacing: 12) {
             Circle()
                 .fill(player.ballColor.color)
-                .frame(width: 80, height: 80)
+                .frame(width: 120, height: 120)
                 .overlay(
                     Circle()
-                        .stroke(.white, lineWidth: 4)
+                        .stroke(borderColor, lineWidth: 5)
                 )
-            
+
             VStack(spacing: 4) {
                 Text(player.name.uppercased())
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundStyle(primaryText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
-                
+
                 Text(player.ballColor.rawValue.uppercased())
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.8))
+                    .font(.system(size: 24, weight: .medium, design: .rounded))
+                    .foregroundStyle(secondaryText)
             }
         }
-        .frame(height: 140)
+        .frame(height: 200)
     }
 }
 
@@ -83,43 +89,39 @@ struct DisplayDeadnessCell: View {
     let isDisabled: Bool
     let fromColor: BallColor
     let toColor: BallColor
-    
+
+    private let cellBorder = Color(red: 0.3, green: 0.5, blue: 0.3)
+
     var body: some View {
         RoundedRectangle(cornerRadius: 16)
             .fill(cellBackgroundColor)
-            .frame(width: 120, height: 120)
+            .frame(width: 180, height: 180)
             .overlay(
                 Group {
                     if isDisabled {
-                        Image(systemName: "minus")
-                            .font(.system(size: 40, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.5))
+                        EmptyView()
                     } else if isDead {
                         Image(systemName: "xmark")
-                            .font(.system(size: 50, weight: .bold))
+                            .font(.system(size: 70, weight: .bold))
                             .foregroundStyle(.white)
                     } else {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 40, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.7))
+                        EmptyView()
                     }
                 }
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(.white.opacity(0.3), lineWidth: 2)
+                    .stroke(cellBorder, lineWidth: 3)
             )
-            .scaleEffect(isDead ? 1.05 : 1.0)
-            .animation(.easeInOut(duration: 0.2), value: isDead)
     }
-    
+
     private var cellBackgroundColor: Color {
         if isDisabled {
-            return .gray.opacity(0.4)
+            return .gray.opacity(0.3)
         } else if isDead {
-            return .red.opacity(0.8)
+            return Color(red: 0.85, green: 0.15, blue: 0.15)
         } else {
-            return .green.opacity(0.6)
+            return .white.opacity(0.9)
         }
     }
 }
@@ -145,7 +147,7 @@ struct DisplayDeadnessCell: View {
         timestamp: Date(),
         status: .active
     )
-    
+
     DeadnessBoardDisplayView(game: sampleGame)
-        .background(.black)
+        .background(Color(red: 0.75, green: 0.88, blue: 0.65))
 }

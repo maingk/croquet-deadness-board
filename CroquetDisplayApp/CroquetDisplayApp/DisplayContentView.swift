@@ -2,7 +2,7 @@ import SwiftUI
 
 struct DisplayContentView: View {
     @StateObject private var displayViewModel = DisplayViewModel()
-    
+
     var body: some View {
         GeometryReader { geometry in
             if let game = displayViewModel.currentGame {
@@ -10,17 +10,17 @@ struct DisplayContentView: View {
                     // Main deadness board (70% width)
                     DeadnessBoardDisplayView(game: game)
                         .frame(width: geometry.size.width * 0.7)
-                    
+
                     // Game info panel (30% width)
                     GameInfoPanelView(game: game)
                         .frame(width: geometry.size.width * 0.3)
-                        .background(Color.gray.opacity(0.2))
+                        .background(Color(red: 0.65, green: 0.80, blue: 0.55))
                 }
             } else {
                 WaitingForGameView()
             }
         }
-        .background(.black)
+        .background(Color(red: 0.75, green: 0.88, blue: 0.65))
         .ignoresSafeArea()
         .onAppear {
             displayViewModel.startListening()

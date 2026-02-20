@@ -5,9 +5,10 @@ A dual-app solution for digitally managing and displaying "deadness" status in A
 ## Overview
 
 The Croquet Deadness Board System consists of:
-- **iOS Control App**: Tournament director control interface
-- **tvOS Display App**: Large screen display for players and spectators
-- **Shared Models & Services**: Common data structures and Firebase integration
+- **iOS Control App** (`CroquetControlApp/`): Tournament director control interface
+- **tvOS Display App** (`CroquetDisplayApp/`): Large screen display for players and spectators
+
+Both apps embed their own copy of shared models and Firebase services.
 
 ## Features
 
@@ -16,7 +17,7 @@ The Croquet Deadness Board System consists of:
 - Player setup and game management
 - Real-time synchronization with display
 - Undo/redo functionality
-- Offline capability with sync when reconnected
+- Hoop progression tracking
 
 ### tvOS Display App
 - Large, high-contrast deadness board display
@@ -25,126 +26,96 @@ The Croquet Deadness Board System consists of:
 - Hoop progression tracking
 - Professional tournament presentation
 
-### Backend Services
-- Firebase Realtime Database integration
-- Automatic conflict resolution
-- Multi-device support
-- Offline-first architecture
+### Backend
+- Firebase Realtime Database for real-time sync between apps
+- Firebase Anonymous Authentication
+- Offline-first architecture with automatic reconnection
 
 ## Project Structure
 
 ```
-├── iOS-ControlApp/          # iOS control application
-│   ├── Sources/             # App entry point
-│   ├── Views/               # SwiftUI views
-│   ├── ViewModels/          # MVVM view models
-│   ├── Services/            # iOS-specific services
-│   └── Resources/           # Assets and configurations
+croquet-deadness-board/
+├── CroquetControlApp/                  # iOS control app (Xcode project)
+│   ├── CroquetControlApp.xcodeproj
+│   └── CroquetControlApp/
+│       ├── ContentView.swift
+│       ├── GameViewModel.swift
+│       ├── DeadnessGridView.swift
+│       ├── GameControlsView.swift
+│       ├── GameSetupSheet.swift
+│       ├── GameSetupView.swift
+│       ├── HoopTrackView.swift
+│       ├── Assets.xcassets/
+│       ├── GoogleService-Info.plist     # (gitignored)
+│       └── Shared/                     # Embedded shared code
+│           ├── Models/                 # Game, Player, BallColor, etc.
+│           ├── Services/               # FirebaseGameService
+│           └── Extensions/             # Color+Extensions
 │
-├── tvOS-DisplayApp/         # tvOS display application
-│   ├── Sources/             # App entry point
-│   ├── Views/               # SwiftUI views for TV
-│   ├── ViewModels/          # TV-specific view models
-│   ├── Services/            # tvOS-specific services
-│   └── Resources/           # TV assets and configurations
+├── CroquetDisplayApp/                  # tvOS display app (Xcode project)
+│   ├── CroquetDisplayApp.xcodeproj
+│   └── CroquetDisplayApp/
+│       ├── DisplayContentView.swift
+│       ├── DisplayViewModel.swift
+│       ├── DeadnessBoardDisplayView.swift
+│       ├── GameInfoPanelView.swift
+│       ├── Assets.xcassets/
+│       ├── GoogleService-Info.plist     # (gitignored)
+│       └── Shared/                     # Embedded shared code
 │
-├── Shared/                  # Shared code between platforms
-│   ├── Models/              # Data models (Game, Player, etc.)
-│   ├── Services/            # Firebase and networking services
-│   ├── Extensions/          # Swift extensions
-│   └── Utilities/           # Helper classes and utilities
-│
-├── Tests/                   # Unit and integration tests
-└── docs/                    # Documentation including PRD
+├── docs/                               # Documentation
+│   └── croquet-deadness-board-prd.md
+├── .gitignore
+└── README.md
 ```
 
 ## Requirements
 
-### Minimum System Requirements
-- **iOS Device**: iPhone 12 or newer / iPad (9th gen) or newer, iOS 16.0+
-- **Display System**: Apple TV 4K (3rd generation) or newer, tvOS 16.0+
-- **Network**: WiFi connectivity, minimum 10 Mbps internet connection
+### Devices
+- **iOS**: iPhone or iPad running iOS 16.0+
+- **tvOS**: Apple TV 4K running tvOS 16.0+
+- **Network**: WiFi connectivity for Firebase sync
 
-### Development Requirements
-- Xcode 15.0 or later
+### Development
+- Xcode 15.0+
 - Swift 5.8+
-- iOS 16.0+ SDK
-- tvOS 16.0+ SDK
 
 ## Getting Started
 
 ### 1. Clone the Repository
 ```bash
-git clone [repository-url]
-cd croquet_deadness_board_app
+git clone <repository-url>
+cd croquet-deadness-board
 ```
 
-### 2. Install Dependencies
-The project uses Swift Package Manager for dependency management. Dependencies will be automatically resolved when you open the project in Xcode.
-
-### 3. Firebase Setup
+### 2. Firebase Setup
 1. Create a Firebase project at https://firebase.google.com
-2. Add iOS and tvOS apps to your Firebase project
-3. Download the `GoogleService-Info.plist` files
-4. Add them to the respective app bundles
+2. Add an iOS app and a tvOS app to your Firebase project
+3. Download the `GoogleService-Info.plist` for each app
+4. Place them in:
+   - `CroquetControlApp/CroquetControlApp/GoogleService-Info.plist`
+   - `CroquetDisplayApp/CroquetDisplayApp/GoogleService-Info.plist`
 
-### 4. Build and Run
-- Open the project in Xcode
-- Select the target (iOS or tvOS)
+### 3. Build and Run
+- Open `CroquetControlApp/CroquetControlApp.xcodeproj` in Xcode for the iOS app
+- Open `CroquetDisplayApp/CroquetDisplayApp.xcodeproj` in Xcode for the tvOS app
+- Firebase SPM dependencies will resolve automatically on first open
 - Build and run on simulator or device
 
 ## Architecture
 
 ### Data Models
-- **Game**: Core game state with deadness matrix and player information
+- **Game**: Core game state including a 4x4 deadness matrix and player information
 - **Player**: Individual player with ball color and hoop progression
 - **GameAction**: Action history for undo/redo functionality
 
 ### Services
-- **FirebaseGameService**: Real-time game synchronization
-- **GameStateManager**: Local state management and persistence
+- **FirebaseGameService**: Real-time game synchronization via Firebase Realtime Database
 
 ### Real-time Synchronization
-- Firebase Realtime Database for instant updates
+- Firebase Realtime Database for instant updates between iOS and tvOS
 - Optimistic UI updates with conflict resolution
-- Offline support with automatic sync when reconnected
-
-## Development Guidelines
-
-### Code Style
-- Follow Swift API Design Guidelines
-- Use SwiftUI for all UI components
-- Implement MVVM architecture pattern
-- Include unit tests for business logic
-
-### Git Workflow
-- Use feature branches for new development
-- Include descriptive commit messages
-- Test thoroughly before merging to main
-
-### Testing
-- Run unit tests: `swift test`
-- Test on both simulator and physical devices
-- Verify real-time synchronization between apps
-
-## Deployment
-
-### iOS App Store
-1. Archive the iOS app in Xcode
-2. Upload to App Store Connect
-3. Submit for review
-
-### tvOS App Store
-1. Archive the tvOS app in Xcode
-2. Upload to App Store Connect
-3. Submit for review
-
-## Support
-
-For issues and feature requests, please refer to:
-- [Product Requirements Document](docs/croquet-deadness-board-prd.md)
-- Project issue tracker
-- Development team contact
+- Offline support with automatic sync on reconnection
 
 ## License
 

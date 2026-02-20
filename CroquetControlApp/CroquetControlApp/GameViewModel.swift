@@ -9,11 +9,13 @@ class GameViewModel: ObservableObject {
     private var gameHistory: [Game] = []
     private var cancellables = Set<AnyCancellable>()
     
-    // Firebase service will be injected later
     private var firebaseService: FirebaseGameService?
-    
+
     init() {
-        // Initialize with sample game for preview purposes
+        let service = FirebaseGameServiceImpl()
+        service.setCurrentGame(gameId: "latest")
+        self.firebaseService = service
+
         #if DEBUG
         if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
             startSampleGame()
@@ -23,7 +25,7 @@ class GameViewModel: ObservableObject {
     
     func startNewGame(players: [Player], format: GameFormat, tournamentInfo: String?) {
         let newGame = Game(
-            id: UUID().uuidString,
+            id: "latest",
             tournament: tournamentInfo,
             players: players,
             deadnessMatrix: Array(repeating: Array(repeating: false, count: 4), count: 4),
@@ -33,7 +35,7 @@ class GameViewModel: ObservableObject {
             status: .active,
             creatorUid: Auth.auth().currentUser?.uid
         )
-        
+
         saveCurrentState()
         currentGame = newGame
         syncToFirebase()
@@ -65,6 +67,12 @@ class GameViewModel: ObservableObject {
         saveCurrentState()
         game.players[playerIndex].hoopsRun += 1
         game.hoopProgression[playerIndex] = game.players[playerIndex].hoopsRun
+
+        // Clear this player's deadness on all others (American 6-wicket rule)
+        for i in 0..<4 {
+            game.deadnessMatrix[playerIndex][i] = false
+        }
+
         game.timestamp = Date()
         currentGame = game
         syncToFirebase()
@@ -75,10 +83,9 @@ class GameViewModel: ObservableObject {
         
         saveCurrentState()
         
-        // Clear deadness for this player (both directions)
+        // Clear deadness for this player (row only - striker's deadness on others)
         for i in 0..<4 {
             game.deadnessMatrix[playerIndex][i] = false
-            game.deadnessMatrix[i][playerIndex] = false
         }
         
         game.timestamp = Date()

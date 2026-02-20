@@ -67,7 +67,6 @@ public extension Game {
         
         for i in 0..<deadnessMatrix.count {
             deadnessMatrix[playerIndex][i] = false
-            deadnessMatrix[i][playerIndex] = false
         }
         timestamp = Date()
     }

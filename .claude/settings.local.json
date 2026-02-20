@@ -7,7 +7,16 @@
       "Bash(done)",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(find:*)",
+      "Bash(git -C /Users/richard/Projects/croquet-deadness-board log --oneline -20)",
+      "Bash(swift build:*)",
+      "Bash(git -C /Users/richard/Projects/croquet-deadness-board status)",
+      "Bash(rsync:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(git status:*)"
     ],
     "deny": [],
     "ask": []

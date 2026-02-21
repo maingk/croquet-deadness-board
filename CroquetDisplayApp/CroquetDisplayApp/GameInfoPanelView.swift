@@ -161,36 +161,24 @@ struct HoopProgressRow: View {
 }
 
 struct WaitingForGameView: View {
-    @State private var animationOffset: CGFloat = 0
-
     private let primaryText = Color(red: 0.1, green: 0.1, blue: 0.1)
     private let secondaryText = Color(red: 0.25, green: 0.25, blue: 0.25)
 
     var body: some View {
         VStack(spacing: 32) {
-            Image(systemName: "gamecontroller")
-                .font(.system(size: 120))
+            Text("CROQUET DEADNESS BOARD")
+                .font(.system(size: 48, weight: .bold, design: .rounded))
+                .foregroundStyle(primaryText)
+
+            Text("Waiting for game to start...")
+                .font(.system(size: 24, weight: .medium, design: .rounded))
                 .foregroundStyle(secondaryText)
-                .offset(y: animationOffset)
-                .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: animationOffset)
-
-            VStack(spacing: 16) {
-                Text("CROQUET DEADNESS BOARD")
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .foregroundStyle(primaryText)
-
-                Text("Waiting for game to start...")
-                    .font(.system(size: 24, weight: .medium, design: .rounded))
-                    .foregroundStyle(secondaryText)
-            }
 
             Text("Connect your iOS device to begin")
                 .font(.system(size: 20, weight: .regular, design: .rounded))
                 .foregroundStyle(secondaryText.opacity(0.7))
         }
-        .onAppear {
-            animationOffset = -20
-        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -213,10 +201,10 @@ struct WaitingForGameView: View {
 
     GameInfoPanelView(game: sampleGame)
         .frame(width: 400, height: 800)
-        .background(Color(red: 0.65, green: 0.80, blue: 0.55))
+        .background(Color(red: 0.90, green: 0.93, blue: 0.88))
 }
 
 #Preview("Waiting View") {
     WaitingForGameView()
-        .background(Color(red: 0.75, green: 0.88, blue: 0.65))
+        .background(Color(red: 0.95, green: 0.97, blue: 0.93))
 }

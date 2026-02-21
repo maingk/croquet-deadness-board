@@ -8,7 +8,7 @@ struct DeadnessBoardDisplayView: View {
     var body: some View {
         VStack(spacing: 24) {
             Text("DEADNESS BOARD")
-                .font(.system(size: 72, weight: .bold, design: .rounded))
+                .font(.system(size: 60, weight: .bold, design: .rounded))
                 .foregroundStyle(primaryText)
                 .padding(.top, 32)
 
@@ -17,11 +17,11 @@ struct DeadnessBoardDisplayView: View {
                 // Header row with player info
                 HStack(spacing: 12) {
                     Color.clear
-                        .frame(width: 180, height: 0)
+                        .frame(width: 150, height: 0)
 
                     ForEach(game.players.indices, id: \.self) { index in
                         PlayerHeaderCell(player: game.players[index])
-                            .frame(width: 180)
+                            .frame(width: 150)
                     }
                 }
 
@@ -30,7 +30,7 @@ struct DeadnessBoardDisplayView: View {
                     HStack(spacing: 12) {
                         // Row header
                         PlayerHeaderCell(player: game.players[row])
-                            .frame(width: 180)
+                            .frame(width: 150)
 
                         // Deadness cells
                         ForEach(game.players.indices, id: \.self) { col in
@@ -62,7 +62,7 @@ struct PlayerHeaderCell: View {
         VStack(spacing: 12) {
             Circle()
                 .fill(player.ballColor.color)
-                .frame(width: 120, height: 120)
+                .frame(width: 100, height: 100)
                 .overlay(
                     Circle()
                         .stroke(borderColor, lineWidth: 5)
@@ -70,17 +70,17 @@ struct PlayerHeaderCell: View {
 
             VStack(spacing: 4) {
                 Text(player.name.uppercased())
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(primaryText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
 
                 Text(player.ballColor.rawValue.uppercased())
-                    .font(.system(size: 24, weight: .medium, design: .rounded))
+                    .font(.system(size: 20, weight: .medium, design: .rounded))
                     .foregroundStyle(secondaryText)
             }
         }
-        .frame(height: 200)
+        .frame(height: 170)
     }
 }
 
@@ -95,14 +95,14 @@ struct DisplayDeadnessCell: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 16)
             .fill(cellBackgroundColor)
-            .frame(width: 180, height: 180)
+            .frame(width: 150, height: 150)
             .overlay(
                 Group {
                     if isDisabled {
                         EmptyView()
                     } else if isDead {
                         Image(systemName: "xmark")
-                            .font(.system(size: 70, weight: .bold))
+                            .font(.system(size: 60, weight: .bold))
                             .foregroundStyle(.white)
                     } else {
                         EmptyView()
@@ -119,9 +119,9 @@ struct DisplayDeadnessCell: View {
         if isDisabled {
             return .gray.opacity(0.3)
         } else if isDead {
-            return Color(red: 0.85, green: 0.15, blue: 0.15)
+            return .red
         } else {
-            return .white.opacity(0.9)
+            return .green.opacity(0.6)
         }
     }
 }
@@ -149,5 +149,5 @@ struct DisplayDeadnessCell: View {
     )
 
     DeadnessBoardDisplayView(game: sampleGame)
-        .background(Color(red: 0.75, green: 0.88, blue: 0.65))
+        .background(Color(red: 0.95, green: 0.97, blue: 0.93))
 }

@@ -14,13 +14,21 @@ struct DisplayContentView: View {
                     // Game info panel (30% width)
                     GameInfoPanelView(game: game)
                         .frame(width: geometry.size.width * 0.3)
-                        .background(Color(red: 0.65, green: 0.80, blue: 0.55))
+                        .background(Color(red: 0.90, green: 0.93, blue: 0.88))
                 }
             } else {
                 WaitingForGameView()
             }
         }
-        .background(Color(red: 0.75, green: 0.88, blue: 0.65))
+        .background(
+            ZStack {
+                Color(red: 0.95, green: 0.97, blue: 0.93)
+                Image("ClubLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .opacity(0.12)
+            }
+        )
         .ignoresSafeArea()
         .onAppear {
             displayViewModel.startListening()
